@@ -14,9 +14,17 @@ public final class CustomNSTextField: NSTextField {
         }
     }
 
+    override public func becomeFirstResponder() -> Bool {
+        let ok = super.becomeFirstResponder()
+        if ok {
+            self.selectText(nil)
+        }
+        return ok
+    }
+
     public func focus() {
         guard let window = self.window else { return }
-        window.makeKey()
+        window.makeKeyAndOrderFront(nil)
         window.makeFirstResponder(self)
         self.selectText(nil)
         if let editor = self.currentEditor() {

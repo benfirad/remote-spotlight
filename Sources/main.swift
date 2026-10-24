@@ -27,7 +27,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         setupStatusBarItem()
         setupSpotlightPanel()
         registerGlobalHotKey()
-        setupWorkspaceObserver()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -108,7 +107,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // Window dimension matching exact SwiftUI layout (780 x 490)
         let panel = SpotlightPanel(
             contentRect: NSRect(x: 0, y: 0, width: 780, height: 490),
-            styleMask: [.borderless, .fullSizeContentView],
+            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -209,21 +208,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         self.spotlightPanel = panel
     }
 
-    private func setupWorkspaceObserver() {
-        // Closes panel when user explicitly switches to another application
-        NSWorkspace.shared.notificationCenter.addObserver(
-            self,
-            selector: #selector(otherAppActivated(_:)),
-            name: NSWorkspace.didActivateApplicationNotification,
-            object: nil
-        )
-    }
-
-    @objc private func otherAppActivated(_ notification: Notification) {
-        guard let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
-        if app.bundleIdentifier != Bundle.main.bundleIdentifier {
-            closeSpotlight()
-        }
+    func windowDidResignKey(_ notification: Notification) {
+        if isOpening || Date().timeIntervalSince(openTimestamp) < 0.35 { return }
+        closeSpotlight()
     }
 
     @objc public func toggleSpotlight() {
@@ -258,19 +245,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             panel.setFrameOrigin(NSPoint(x: x, y: y))
         }
 
-        NSRunningApplication.current.activate(options: [.activateIgnoringOtherApps, .activateAllWindows])
-        NSApp.activate(ignoringOtherApps: true)
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.makeKeyAndOrderFront(nil)
-        panel.makeKey()
         panel.orderFrontRegardless()
         panel.invalidateShadow()
 
         startOutsideClickMonitor()
 
         // Focus search text field immediately and repeat on micro-delays to guarantee immediate keyboard capture
-        for delay in [0.0, 0.03, 0.08, 0.16, 0.28] {
+        for delay in [0.0, 0.02, 0.05, 0.10, 0.20] {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 self?.ensureSearchFieldFocus()
             }
@@ -283,7 +267,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func ensureSearchFieldFocus() {
         guard let panel = spotlightPanel, panel.isVisible else { return }
-        panel.makeKey()
         panel.makeKeyAndOrderFront(nil)
 
         let targetField = currentSearchField ?? (panel.contentView.flatMap { findSearchField(in: $0) })
