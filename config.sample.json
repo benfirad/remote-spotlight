@@ -1,0 +1,19 @@
+{
+  "remoteTargets": [
+    {
+      "name": "Workstation Desktop",
+      "host": "desktop-pc",
+      "rootPath": "D:/MyProjects"
+    },
+    {
+      "name": "Home Server",
+      "host": "home-server",
+      "rootPath": "/mnt/storage"
+    }
+  ],
+  "localCacheDbPath": "~/.cache/remote-spotlight/index.db",
+  "cliToolPath": "/usr/local/bin/remote-spotlight",
+  "searchPrefix": "search",
+  "hotKeyModifiers": "option",
+  "hotKeyCode": 49
+}
