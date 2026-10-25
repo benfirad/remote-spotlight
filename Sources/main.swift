@@ -247,6 +247,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         panel.isOpaque = false
         panel.backgroundColor = .clear
+        NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
         panel.orderFrontRegardless()
         panel.invalidateShadow()
@@ -267,6 +268,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     private func ensureSearchFieldFocus() {
         guard let panel = spotlightPanel, panel.isVisible else { return }
+        NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
 
         let targetField = currentSearchField ?? (panel.contentView.flatMap { findSearchField(in: $0) })
