@@ -109,5 +109,4 @@ Remote Spotlight achieves zero UI latency by decoupling the **search loop** from
 ## 📄 License & Intellectual Property
 
 This project is open-source under the [MIT License](LICENSE).
-Architectural design and distributed cross-device search protocols registered in RM-OS R&D Invention Register.
-Copyright (c) 2026 Fırat Daşdöğen / DAAK.
+Copyright (c) 2026 daak (@benfirad).

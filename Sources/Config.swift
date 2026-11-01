@@ -30,15 +30,15 @@ public struct AppConfig: Codable {
             return cfg
         }
 
-        // Automatic discovery for RM-OS environment if present
+        // RM-OS ortamı varsa önbelleği ve CLI'yi kendiliğinden kullan; makineler config.json'dan gelir
         let rmosDb = "\(home)/.cache/rmos/rmos_chunks_fts.db"
         let rmosCli = "\(home)/.local/bin/rmos-remote"
 
         if FileManager.default.fileExists(atPath: rmosDb) {
             return AppConfig(
                 remoteTargets: [
-                    RemoteTargetConfig(name: "Master Desktop (LOLILE)", host: "lolile-openclaw", rootPath: "B:/RM-OS"),
-                    RemoteTargetConfig(name: "Server Backup (MYA-L11)", host: "mya-l11", rootPath: "/Users/mac/.hermes/rm-os/RM-OS")
+                    RemoteTargetConfig(name: "Remote Workstation", host: "desktop-pc", rootPath: "D:/RM-OS"),
+                    RemoteTargetConfig(name: "Home Server", host: "home-server", rootPath: "/srv/rm-os")
                 ],
                 localCacheDbPath: rmosDb,
                 cliToolPath: FileManager.default.fileExists(atPath: rmosCli) ? rmosCli : "/usr/local/bin/remote-spotlight",

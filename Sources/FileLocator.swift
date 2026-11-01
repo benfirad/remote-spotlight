@@ -106,7 +106,7 @@ public final class FileLocator {
         let rel = cleanLoc.replacingOccurrences(of: "RM-OS/", with: "").trimmingCharacters(in: CharacterSet(charactersIn: "/"))
         let localCached = "\(cacheDir)/\(rel)"
 
-        onProgress?("Ağdan indiriliyor (LOLILE Master / MYA-L11)...")
+        onProgress?("Uzak makinelerden indiriliyor...")
 
         DispatchQueue.global(qos: .userInitiated).async {
             let targetDir = (localCached as NSString).deletingLastPathComponent
@@ -125,11 +125,6 @@ public final class FileLocator {
 
                 let bareName = (rel as NSString).lastPathComponent
                 candidates.append("\(target.host):\(root)/\(bareName)")
-
-                if rel.contains("IMMIGRATION_LEGAL") {
-                    let eduRel = rel.replacingOccurrences(of: "05_OPERATIONS/IMMIGRATION_LEGAL/", with: "EDUCATION_IMMIGRATION/")
-                    candidates.append("\(target.host):\(root)/\(eduRel)")
-                }
             }
 
             var success = false
@@ -151,7 +146,7 @@ public final class FileLocator {
                     self.handleOpen(path: localCached, mode: mode)
                     completion(true, localCached)
                 } else {
-                    completion(false, "Dosya ağ üzerinde (LOLILE Master / MYA-L11) bulunamadı.")
+                    completion(false, "Dosya uzak makinelerde bulunamadı.")
                 }
             }
         }
