@@ -1,0 +1,25 @@
+name: RMOS Spotlight
+options:
+  bundleIdPrefix: com.daak
+  deploymentTarget:
+    macOS: "13.0"
+targets:
+  RMOS Spotlight:
+    type: application
+    platform: macOS
+    deploymentTarget: "13.0"
+    sources:
+      - path: Sources
+    info:
+      path: Info.plist
+    dependencies:
+      - sdk: SwiftUI.framework
+      - sdk: AppKit.framework
+      - sdk: Carbon.framework
+      - sdk: libsqlite3.tbd
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.daak.rmos-spotlight
+      PRODUCT_NAME: RMOSSpotlight
+      ENABLE_HARDENED_RUNTIME: NO
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      SWIFT_VERSION: "5.0"

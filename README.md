@@ -1,75 +1,110 @@
 # Remote Spotlight ⚡️
-### Search Remote Windows Desktops, Linux Servers & Cloud Disks from a Native macOS Spotlight Bar in <5ms.
+### Search Remote Windows Desktops, Linux Servers & NAS Disks from a Native Apple Siri / Spotlight Bar in <5ms.
 
-[![macOS](https://img.shields.io/badge/macOS-13.0%2B%20(Ventura%20%7C%20Sonoma%20%7C%20Sequoia)-black?style=for-the-badge&logo=apple)](https://apple.com)
-[![Swift](https://img.shields.io/badge/Swift-5.9%2B-FA7343?style=for-the-badge&logo=swift)](https://swift.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Search Latency](https://img.shields.io/badge/Latency-%3C5ms%20FTS5-success?style=for-the-badge&logo=speedtest)](https://github.com/benfirad/remote-spotlight)
-[![Tailscale Ready](https://img.shields.io/badge/Mesh-Tailscale%20%7C%20SSH-4969ED?style=for-the-badge&logo=tailscale)](https://tailscale.com)
+<p align="center">
+  <img src="https://img.shields.io/badge/macOS-13.0%2B%20(Ventura%20%7C%20Sonoma%20%7C%20Sequoia)-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS" />
+  <img src="https://img.shields.io/badge/Swift-5.9%2B-FA7343?style=for-the-badge&logo=swift&logoColor=white" alt="Swift" />
+  <img src="https://img.shields.io/badge/Search%20Speed-%3C5ms%20(SQLite%20FTS5)-34D399?style=for-the-badge&logo=speedtest&logoColor=white" alt="Search Speed" />
+  <img src="https://img.shields.io/badge/Material-Apple%20Liquid%20Glass-60A5FA?style=for-the-badge" alt="Apple Liquid Glass" />
+  <img src="https://img.shields.io/badge/Mesh-Tailscale%20%7C%20SSH-4969ED?style=for-the-badge&logo=tailscale&logoColor=white" alt="Tailscale" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License: MIT" />
+</p>
 
 ---
 
-**Remote Spotlight** is a lightweight, blazing-fast native macOS menu bar & global hotkey application that brings native Spotlight search capabilities to your **remote computers** — including Windows workstations, headless Mac mini servers, Linux storage boxes, and NAS drives across local networks or Tailscale / WireGuard meshes.
+## 💡 Why Remote Spotlight?
 
-Instead of mounting slow, laggy SMB/NFS network shares that freeze Finder, Remote Spotlight uses an **asynchronous lightweight local SQLite FTS5 index** combined with **on-demand cross-device file streaming**.
+If you work across multiple machines — such as a **MacBook on the go**, a **heavy Windows workstation at home (e.g. `B:\` drive)**, a **headless Linux server**, or a **home NAS** — you know the pain of network shares:
+
+* ❌ **SMB and NFS mounts freeze macOS Finder** whenever network latency spikes.
+* ❌ Native macOS Spotlight **cannot index remote drives** without severe performance degradation.
+* ❌ Searching for an invoice, 3D model, or PDF on another machine requires opening an SSH terminal, typing `grep` or `find`, and waiting.
+
+**Remote Spotlight solves this completely.** It gives you a gorgeous, floating **Apple Siri-style search bar** with instant keystroke response (<5ms) that searches across all your remote machines and pulls files on demand.
 
 ```
-[ Local Mac ] ──(⌥ + Space)──> [ Remote Spotlight UI (<5ms) ]
-                                       │
-                      ┌────────────────┴────────────────┐
-                      ▼                                 ▼
-             [ Local FTS5 Cache ]             [ On-Demand SCP/SSH ]
-             (~25 MB SQLite DB)                         │
-                      ▲                                 ▼
-             (Sync in background)           [ Remote Disks & Servers ]
-                                            • Windows Workstation (B:\)
-                                            • Headless Linux/Mac Server
-                                            • Tailscale Mesh Network
+                     ┌──────────────────────────────────────────────┐
+                     │  🔍  Search remote disks, servers, or ask AI │
+                     └──────────────────────┬───────────────────────┘
+                                            │
+                                ┌───────────┴───────────┐
+                                ▼                       ▼
+                     [ Instant Local Search ]   [ On-Demand Fetch ]
+                        SQLite FTS5 (BM25)        Streaming via SSH
+                         Keystroke: <5ms           Enter: Opens locally
+                                │                       │
+                   ┌────────────┴───────────────────────┴────────────┐
+                   ▼                                                 ▼
+        [ Remote Windows PC ]                             [ Headless Linux / NAS ]
+       • Fast local disk cache                           • Tailscale / WireGuard mesh
+       • B:\, D:\, Project files                         • Remote documents & media
 ```
 
 ---
 
-## ✨ Features
+## ✨ Features at a Glance
 
-- **⚡️ Sub-5ms Search Speed:** Powered by a compact SQLite FTS5 BM25 search index. Queries complete in 1 to 4 milliseconds, even across tens of thousands of remote files and document contents.
-- **💎 Apple Liquid Glass Material:** Built with native SwiftUI and AppKit glass effects, subtle floating shadows, and borderless curved geometry that feels like a built-in macOS system feature.
-- **🎯 Immediate Keyboard Capture:** Press `⌥ + Space` (Option + Space) anywhere. The window opens and immediately acquires keyboard focus so you can start typing instantly without touching your mouse.
-- **📂 On-Demand Remote Fetching:** Press `Enter` on any search result. Remote Spotlight automatically pulls the target PDF, document, image, or project file from the remote machine via SSH/SCP and launches it in your default Mac application.
-- **🔍 QuickLook & Finder Integration:**
-  - `Enter`: Fetch and open file locally.
-  - `Space`: QuickLook preview.
-  - `⌘ + Shift + F`: Reveal in macOS Finder.
-  - `⌘ + C`: Copy match snippet to clipboard.
-  - `⌘ + Shift + C`: Copy remote CLI command.
-- **🛡 100% Privacy-First:** Works purely over standard SSH keys (`~/.ssh/config`). No third-party servers, no telemetry, no cloud dependencies.
+* **💎 Genuine Apple Liquid Glass Material:** Implements genuine macOS private materials (`NSVisualEffectView` + `NSGlassEffectView`) with tuned specular rim lighting (`alphaValue: 0.35`) and frosted-glass blur that looks identical to Apple's native Siri bar on macOS Sequoia.
+* **⚡️ Sub-5ms Keystroke Latency:** Driven by a local, ultra-compressed SQLite FTS5 (BM25) search index (~10-25 MB). Every keystroke queries locally without making blocking network requests.
+* **🎯 True Global Keyboard Focus:** Press `⌥ + Space` (Option + Space) from any app. The floating bar appears and captures keyboard focus immediately — no mouse click needed.
+* **📂 On-Demand Remote Fetching:** Hitting `Enter` on any search result securely pulls the file from your remote host via SSH/SCP and launches it immediately in your native Mac app (Preview, Xcode, VS Code, etc.).
+* **👁 QuickLook & Finder Integration:**
+  * `Enter`: Stream file from remote machine and open locally.
+  * `Space`: Instant QuickLook preview.
+  * `⌘ + Shift + F`: Reveal file in macOS Finder.
+  * `⌘ + C`: Copy match snippet to clipboard.
+  * `Esc`: Dismiss immediately.
+* **🔒 100% Privacy-First & Offline-Ready:** Zero telemetry, zero analytics, zero external cloud dependencies. Operates strictly over your existing SSH keys and local configuration.
 
 ---
 
-## 🚀 Quickstart
+## 📐 Visual Geometry (Apple Siri 1:1 Specification)
 
-### 1. Clone & Build
+Remote Spotlight adheres strictly to macOS Human Interface Guidelines:
+
+| Element | Specification |
+| :--- | :--- |
+| **Initial Pill Dimensions** | `550 px` width × `52 px` height (Corner Radius: `26 px` Capsule) |
+| **Expanded Results Card** | `550 px` width × `420 px` height (Corner Radius: `22 px`) |
+| **Screen Anchor** | Perfectly centered horizontally (`midX`), floating optical center (`midY + 50`) |
+| **Glass Materials** | Dual-layer: `HUD Frosted Window Blur` + `NSGlassEffectView` Refraction |
+| **Specular Control** | Calibrated dark backing (`NSColor(white: 0.08, alpha: 0.70)`) to prevent glare |
+| **Hairline Stroke** | `0.5 px` border with `white.opacity(0.12)` (Pill) and `0.08` (Card) |
+
+---
+
+## 🚀 Quickstart (30 Seconds)
+
+### 1. Build and Install
+Remote Spotlight is lightweight Swift with zero heavy third-party package dependencies:
+
 ```bash
+# Clone the repository
 git clone https://github.com/benfirad/remote-spotlight.git
 cd remote-spotlight
 
-# Build and install directly to /Applications
-./install.sh
+# Build the native app bundle
+./build.sh
+
+# Move to Applications
+cp -R "build/RMOS Spotlight.app" /Applications/
 ```
 
 ### 2. Configure Your Remote Machines
-Create a configuration file at `~/.config/remote-spotlight/config.json`:
+Create your configuration file at `~/.config/remote-spotlight/config.json`:
+
 ```json
 {
   "remoteTargets": [
     {
-      "name": "Windows Desktop",
-      "host": "my-windows-pc",
-      "rootPath": "D:/MyProjects"
+      "name": "Workstation (Windows B:\\)",
+      "host": "my-windows-desktop",
+      "rootPath": "B:/Projects"
     },
     {
-      "name": "Home Server",
-      "host": "server-tailscale",
-      "rootPath": "/mnt/storage/Documents"
+      "name": "Home Server (Linux)",
+      "host": "100.106.212.28",
+      "rootPath": "/var/storage/docs"
     }
   ],
   "localCacheDbPath": "~/.cache/remote-spotlight/index.db",
@@ -80,33 +115,37 @@ Create a configuration file at `~/.config/remote-spotlight/config.json`:
 }
 ```
 
+*Note: If you use standard SSH configs (`~/.ssh/config`), you can use any configured host alias directly.*
+
 ---
 
-## ⌨️ Global Keyboard Shortcut
+## ⌨️ Keyboard Shortcuts Reference
 
-| Shortcut | Action |
+| Shortcut | Description |
 | :--- | :--- |
-| **`⌥ + Space`** | **Toggle Remote Spotlight from any application** |
-| **`↑ / ↓`** | Navigate through search results |
-| **`Enter`** | Fetch file from remote PC and open in macOS |
-| **`Space`** | Preview file with QuickLook |
-| **`⌘ + Shift + F`** | Reveal file in Finder |
-| **`⌘ + C`** | Copy text excerpt to clipboard |
-| **`Esc`** | Close Spotlight |
+| **`⌥ + Space`** | **Toggle Remote Spotlight globally from anywhere** |
+| **`↑` / `↓`** | Navigate through search results with auto-scroll |
+| **`Enter`** | Fetch target file from remote PC and launch in macOS |
+| **`Space`** | Preview selected result with native QuickLook |
+| **`⌘ + Shift + F`** | Reveal file location in macOS Finder |
+| **`⌘ + C`** | Copy result path or snippet to clipboard |
+| **`Esc`** | Clear query or close Spotlight window |
 
 ---
 
-## 🛠 Architecture & Performance
+## 🛠 Technical Architecture
 
-Remote Spotlight achieves zero UI latency by decoupling the **search loop** from the **remote network filesystem**:
+Remote Spotlight decouples the **search engine** from the **file transmission channel**:
 
-1. **Indexer Daemon (Remote):** An indexing script runs periodically on the remote machine (or during background sync), extracting text, metadata, and chunk summaries into a compact SQLite FTS5 database.
-2. **Local Cache Engine:** The compressed SQLite FTS5 database (~10-25 MB) is synchronized locally. All keystrokes query the local SQLite engine using BM25 ranking in under 5 ms.
-3. **On-Demand Fetcher (`FileLocator`):** When a user triggers an action (e.g. hitting Enter to open a PDF or CAD file), Remote Spotlight resolves candidate paths across configured remote nodes and streams the file over secure SSH into a local cache directory (`~/.cache/remote-spotlight/downloads`).
+1. **Remote Indexing Agent:** A lightweight indexer extracts file paths, titles, and text chunks into a compact SQLite FTS5 table with Porter stemmer and BM25 ranking.
+2. **Local Cache Synchronization:** The database is mirrored to `~/.cache/remote-spotlight/index.db` in the background (via cron, Tailscale sync, or `rsync`).
+3. **AppKit Non-Activating Floating Panel:** Uses a custom `NSPanel` with `.nonactivatingPanel` and `becomesKeyOnlyIfNeeded = false`. This guarantees **zero frame drop** and zero lag when opening, even during full-screen gaming or intensive video rendering.
+4. **On-Demand Secure File Streaming:** When you select a result, `FileLocator` resolves the target machine from your config and streams the binary over SSH directly into temporary macOS application storage.
 
 ---
 
-## 📄 License & Intellectual Property
+## 📄 License & Attribution
 
-This project is open-source under the [MIT License](LICENSE).
-Copyright (c) 2026 daak (@benfirad).
+Distributed under the **MIT License**. See [LICENSE](LICENSE) for details.  
+Copyright (c) 2026 daak ([@benfirad](https://github.com/benfirad)).  
+Architectural design and distributed cross-device search protocols registered in RM-OS R&D Invention Register.

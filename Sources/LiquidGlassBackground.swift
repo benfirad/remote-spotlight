@@ -42,7 +42,7 @@ public enum LiquidGlassVariant: Int, CaseIterable, Identifiable, Sendable {
     public static var defaultVariant: LiquidGlassVariant { .v11 }
 }
 
-/// High-performance SwiftUI wrapper for Apple's genuine private liquid-glass material (NSGlassEffectView)
+/// High-performance SwiftUI wrapper for Apple's genuine liquid-glass material (NSVisualEffectView + NSGlassEffectView)
 public struct LiquidGlassBackground: NSViewRepresentable {
     private let cornerRadius: CGFloat
     private let variant: LiquidGlassVariant
@@ -55,11 +55,14 @@ public struct LiquidGlassBackground: NSViewRepresentable {
     private typealias VariantSetterIMP = @convention(c) (AnyObject, Selector, Int) -> Void
 
     private func callPrivateVariantSetter(on object: AnyObject, value: Int) {
-        let sel = NSSelectorFromString("_setVariant:")
-        guard let m = class_getInstanceMethod(object_getClass(object), sel) else { return }
-        let imp = method_getImplementation(m)
-        let f = unsafeBitCast(imp, to: VariantSetterIMP.self)
-        f(object, sel, value)
+        let sel = NSSelectorFromString("set_variant:")
+        if let m = class_getInstanceMethod(object_getClass(object), sel) {
+            let imp = method_getImplementation(m)
+            let f = unsafeBitCast(imp, to: VariantSetterIMP.self)
+            f(object, sel, value)
+        } else {
+            (object as? NSObject)?.setValue(value, forKey: "_variant")
+        }
     }
 
     public func makeNSView(context: Context) -> NSView {
@@ -67,7 +70,27 @@ public struct LiquidGlassBackground: NSViewRepresentable {
         container.wantsLayer = true
         container.layer?.cornerRadius = cornerRadius
         container.layer?.masksToBounds = true
+        container.layer?.backgroundColor = NSColor(white: 0.08, alpha: 0.70).cgColor
 
+        // Katman A: Arka planı zenginleştiren Apple Visual Effect (HUD Frosted Glass Blur)
+        let visualEffect = NSVisualEffectView(frame: .zero)
+        visualEffect.material = .hudWindow
+        visualEffect.blendingMode = .behindWindow
+        visualEffect.state = .active
+        visualEffect.translatesAutoresizingMaskIntoConstraints = false
+        visualEffect.wantsLayer = true
+        visualEffect.layer?.cornerRadius = cornerRadius
+        visualEffect.layer?.masksToBounds = true
+
+        container.addSubview(visualEffect)
+        NSLayoutConstraint.activate([
+            visualEffect.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            visualEffect.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            visualEffect.topAnchor.constraint(equalTo: container.topAnchor),
+            visualEffect.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+
+        // Katman B: Gerçek Apple Likit Cam Kırılma Katmanı (NSGlassEffectView)
         if let glassType = NSClassFromString("NSGlassEffectView") as? NSView.Type {
             let glass = glassType.init(frame: .zero)
             glass.translatesAutoresizingMaskIntoConstraints = false
@@ -77,6 +100,7 @@ public struct LiquidGlassBackground: NSViewRepresentable {
             glass.wantsLayer = true
             glass.layer?.cornerRadius = cornerRadius
             glass.layer?.masksToBounds = true
+            glass.alphaValue = 0.35 // %65 kısılmış yumuşak Apple yansıması
 
             container.addSubview(glass)
             NSLayoutConstraint.activate([
@@ -86,21 +110,16 @@ public struct LiquidGlassBackground: NSViewRepresentable {
                 glass.bottomAnchor.constraint(equalTo: container.bottomAnchor)
             ])
             container.glassView = glass
-            return container
         }
 
-        // Fallback for visual effect view
-        let fallback = NSVisualEffectView(frame: .zero)
-        fallback.material = .popover
-        fallback.blendingMode = .behindWindow
-        fallback.state = .active
-        fallback.wantsLayer = true
-        fallback.layer?.cornerRadius = cornerRadius
-        fallback.layer?.masksToBounds = true
-        return fallback
+        return container
     }
 
     public func updateNSView(_ nsView: NSView, context: Context) {
-        // Zero work on redraws for 100% 120 FPS performance
+        nsView.layer?.cornerRadius = cornerRadius
+        for sub in nsView.subviews {
+            sub.layer?.cornerRadius = cornerRadius
+            sub.setValue(cornerRadius, forKey: "cornerRadius")
+        }
     }
 }

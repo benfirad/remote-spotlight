@@ -4,6 +4,12 @@ import AppKit
 public final class CustomNSTextField: NSTextField {
     override public var acceptsFirstResponder: Bool { true }
 
+    override public var intrinsicContentSize: NSSize {
+        var size = super.intrinsicContentSize
+        size.width = NSView.noIntrinsicMetric
+        return size
+    }
+
     override public func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         if let w = window {
@@ -55,9 +61,14 @@ public struct NativeSearchField: NSViewRepresentable {
         field.isSelectable = true
         field.cell?.wraps = false
         field.cell?.isScrollable = true
-        field.placeholderString = placeholder
-        field.font = NSFont.monospacedSystemFont(ofSize: 16, weight: .medium)
-        field.textColor = NSColor.labelColor
+        field.appearance = NSAppearance(named: .darkAqua)
+        let placeholderAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: NSColor.white.withAlphaComponent(0.44),
+            .font: NSFont.systemFont(ofSize: 16.5, weight: .regular)
+        ]
+        field.placeholderAttributedString = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
+        field.font = NSFont.systemFont(ofSize: 16.5, weight: .regular)
+        field.textColor = .white
         field.delegate = context.coordinator
         field.stringValue = text
         context.coordinator.textField = field
@@ -73,6 +84,11 @@ public struct NativeSearchField: NSViewRepresentable {
         if nsView.stringValue != text {
             nsView.stringValue = text
         }
+        let placeholderAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: NSColor.white.withAlphaComponent(0.44),
+            .font: NSFont.systemFont(ofSize: 16.5, weight: .regular)
+        ]
+        nsView.placeholderAttributedString = NSAttributedString(string: placeholder, attributes: placeholderAttributes)
     }
 
     public final class Coordinator: NSObject, NSTextFieldDelegate {

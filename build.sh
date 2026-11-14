@@ -30,7 +30,11 @@ xcrun --sdk macosx swiftc \
   -framework Carbon \
   -lsqlite3
 
-cp "$ROOT/Info.plist" "$CONTENTS/Info.plist"
+sed -e 's/\$(DEVELOPMENT_LANGUAGE)/en/g' \
+    -e 's/\$(EXECUTABLE_NAME)/RMOSSpotlight/g' \
+    -e 's/\$(PRODUCT_BUNDLE_IDENTIFIER)/com.daak.rmos-spotlight/g' \
+    -e 's/\$(PRODUCT_NAME)/RMOS Spotlight/g' \
+    "$ROOT/Info.plist" > "$CONTENTS/Info.plist"
 
 xattr -cr "$APP"
 codesign --force --deep --sign "-" "$APP"

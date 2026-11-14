@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import Carbon
+import Combine
 
 // Global Carbon HotKey Handler
 private var hotKeyRef: EventHotKeyRef?
@@ -23,7 +24,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var isOpening: Bool = false
     private var outsideClickMonitor: Any?
 
+    private var isExpanded: Bool = false
+    private let pillWidth: CGFloat = 550
+    private let pillHeight: CGFloat = 52
+    private let expandedWidth: CGFloat = 550
+    private let expandedHeight: CGFloat = 420
+    private var cancellables = Set<AnyCancellable>()
+
+    public func setExpanded(_ expanded: Bool, animated: Bool = true) {
+        guard self.isExpanded != expanded, let panel = spotlightPanel else { return }
+        self.isExpanded = expanded
+
+        guard let screen = panel.screen ?? NSScreen.main else { return }
+        let screenRect = screen.visibleFrame
+        let targetWidth: CGFloat = expanded ? expandedWidth : pillWidth
+        let targetHeight: CGFloat = expanded ? expandedHeight : pillHeight
+
+        let topY = screenRect.midY + 50
+        let targetY = topY - targetHeight
+        let targetX = screenRect.midX - (targetWidth / 2)
+
+        let targetFrame = NSRect(x: targetX, y: targetY, width: targetWidth, height: targetHeight)
+        panel.setFrame(targetFrame, display: true, animate: animated)
+        panel.invalidateShadow()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let currentPID = ProcessInfo.processInfo.processIdentifier
+        let bundleID = Bundle.main.bundleIdentifier ?? "com.daak.rmos-spotlight"
+        let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID)
+        for app in running where app.processIdentifier != currentPID {
+            NSApp.terminate(nil)
+            return
+        }
+
         setupStatusBarItem()
         setupSpotlightPanel()
         registerGlobalHotKey()
@@ -104,9 +138,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func setupSpotlightPanel() {
-        // Window dimension matching exact SwiftUI layout (780 x 490)
+        // Window dimension matching Apple Spotlight initial pill layout (550 x 52)
         let panel = SpotlightPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 780, height: 490),
+            contentRect: NSRect(x: 0, y: 0, width: 550, height: 52),
             styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -206,6 +240,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         panel.contentViewController = NSHostingController(rootView: spotlightView)
         self.spotlightPanel = panel
+
+        engine.$queryText
+            .receive(on: RunLoop.main)
+            .sink { [weak self] q in
+                let shouldExpand = !q.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                self?.setExpanded(shouldExpand, animated: true)
+            }
+            .store(in: &cancellables)
     }
 
     func windowDidResignKey(_ notification: Notification) {
@@ -237,12 +279,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         self.engine.statusText = "Aramak için yazın..."
         self.engine.checkDatabaseFreshness()
 
-        // Center on active screen
+        // Center Apple Spotlight pill on active screen
+        self.isExpanded = false
         if let screen = NSScreen.main {
             let screenRect = screen.visibleFrame
-            let x = screenRect.midX - (780 / 2)
-            let y = screenRect.midY - (490 / 2) + 100
-            panel.setFrameOrigin(NSPoint(x: x, y: y))
+            let topY = screenRect.midY + 50
+            let targetY = topY - pillHeight
+            let targetX = screenRect.midX - (pillWidth / 2)
+            panel.setFrame(NSRect(x: targetX, y: targetY, width: pillWidth, height: pillHeight), display: false, animate: false)
         }
 
         panel.isOpaque = false
